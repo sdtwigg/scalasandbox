@@ -46,7 +46,6 @@ CALL SITE:
         case vdef @ ValDef(mods, tname, ttree, assign) if (mods == Modifiers())=> {
           // Check so Only match for val x = ...
           //   as ValDef also used in Class, Function, etc. definitions
-          //val unmodded = (mods == Modifiers())
           val TermName(name) = tname
           val suggestion = (if(prefix_empty) q"$name" else q"$prefix+$us+$name")
           val subtree = transform(assign)
@@ -59,35 +58,11 @@ CALL SITE:
         }
       }
     }
-/*    val q"..$stats" = x
-    val cleaned = stats //stats.map(c.untypecheck(_))
-    println(cleaned.map(showRaw(_, printIds=true)))
-    println("")
-*/
-//    val transformed = vdoer.transformTrees(cleaned)
-//    println(transformed.map(showRaw(_, printIds=true)))
-//    println("")
-    /*
-    val loggedStats = stats.flatMap { stat =>
-      val msg1 = "executing " + showCode(stat)
-    //  val msg2 = "raw " + showRaw(stat)
-    //  val msg3 = "tree " + stat.toString
-    //  List(q"println($msg1)", q"println($msg2)", q"println($msg3)", stat)
-      List(q"println($msg1)", stat)
-    //  List(stat)
-    }
-    println(loggedStats.map(showRaw(_, printIds=true)))
-    */
 
     import org.scalamacros.resetallattrs._ // VERY DANGEROUS: CONSIDER REMOVAL
     // erases many compiler symbols (forcing compiler to redo them)
     // thus breaking some code
-
-//    val result = c.resetAllAttrs(q"..$transformed")
-//    println(showRaw(result))
-//    result
-//    val result = vdoer.transform(x)
-//    println(showCode(result))
+    
     c.Expr[T](c.resetAllAttrs(vdoer.transform(x)))
   }
 }
