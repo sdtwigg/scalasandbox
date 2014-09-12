@@ -15,7 +15,8 @@ object PMacro {
   def debug_impl[T](c: Context)(x: c.Tree): c.Expr[T] = {
     import c.universe._
 
-    val message = s"""MACRO DEBUG CODE EXPANSION, AST DUMP, AND CALL SITE
+    val message = s"""
+MACRO DEBUG CODE EXPANSION, AST DUMP, AND CALL SITE
 -------------------------------------------------------------------------------------
 EXPANDED CODE:
 ${showCode(x)}
@@ -31,7 +32,7 @@ CALL SITE:
   }
 
   def name[T](prefix: String)(x: =>T): T = macro name_impl[T]
-  def name_impl[T: c.WeakTypeTag](c: Context)(prefix: c.Tree)(x: c.Tree): c.Expr[T] = {
+  def name_impl[T: c.WeakTypeTag](c: Context)(prefix: c.Tree)(x: c.Tree) = {
     import c.universe._
 
     val prefix_empty = prefix match {
@@ -43,15 +44,14 @@ CALL SITE:
     
     object vdoer extends Transformer {
       override def transform(tree: Tree) = tree match {
-        case vdef @ ValDef(mods, tname, ttree, assign) if (mods == Modifiers())=> {
-          // Check so Only match for val x = ...
+        case vdef @ q"$mods val $tname: $ttree = $assign" if mods == (Modifiers()) => {
+          // Check Modifiers so Only match for val x = ...
           //   as ValDef also used in Class, Function, etc. definitions
+          // vdef is no longer used but remains extracted to demonstrate the syntax for it
           val TermName(name) = tname
           val suggestion = (if(prefix_empty) q"$name" else q"$prefix+$us+$name")
           val subtree = transform(assign)
-          val newassign = q"_root_.MacroSandbox.Name($subtree, $suggestion)"
-          val newdef = ValDef(mods, tname, ttree, newassign)
-          newdef
+          q"$mods val $tname: $ttree = _root_.MacroSandbox.Name($subtree, $suggestion)"
         }
         case _ => {
           super.transform(tree)
@@ -63,14 +63,14 @@ CALL SITE:
     // erases many compiler symbols (forcing compiler to redo them)
     // thus breaking some code
     
-    c.Expr[T](c.resetAllAttrs(vdoer.transform(x)))
+    c.resetAllAttrs(vdoer.transform(x))
   }
 
   def classtest(fname: String): Test = macro classtest_impl
   def classtest_impl(c: Context)(fname: c.Tree) = {
     import c.universe._
     val classname = TypeName(c.freshName("SubTest"))
-    val Literal(Constant(fieldname: String)) = fname
+    val Literal(Constant(fieldname: String)) = fname // can't seem to get quasiquotes unapply to work here
     val fieldterm = TermName(fieldname)
     q"""
       class $classname extends Test {
@@ -85,4 +85,3 @@ CALL SITE:
 class Test {
   val i = 1
 }
-
