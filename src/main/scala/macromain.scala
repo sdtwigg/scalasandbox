@@ -7,9 +7,9 @@ object macro_main {
       o
     }
 
-    val out = 
+    val out1 = 
     PMacro.debug {
-    PMacro.name(""){
+    PMacro.name("de"){
       val a = {
         val a = double(4)
         a
@@ -48,9 +48,9 @@ object macro_main {
       //type adjust because SubData only known here due to symbol erasure in name macro
     }
     }
-    println(out.name)
+    println(out1.name)
     
-    PMacro.debug { PMacro.name("r2") {
+    PMacro.debug { PMacro.name("ex") {
       class MyData(i: Int) extends Data {
         def test(i: Int): Int = i + 1
 //        val dat = new Data
@@ -66,6 +66,11 @@ object macro_main {
     PMacro.debug {
       PMacro.myprintf("ab")
     }
+    
+    val out3 = PMacro.debug {
+      PMacro.classtest("mynewfield")
+    }
+    println(out3.mynewfield)
   }
 }
 

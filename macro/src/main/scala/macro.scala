@@ -65,5 +65,24 @@ CALL SITE:
     
     c.Expr[T](c.resetAllAttrs(vdoer.transform(x)))
   }
+
+  def classtest(fname: String): Test = macro classtest_impl
+  def classtest_impl(c: Context)(fname: c.Tree) = {
+    import c.universe._
+    import c.universe.Flag._ // PRIVATE, LOCAL, etc.
+    val classname = TypeName(c.freshName("newname"))
+    val Literal(Constant(desname: String)) = fname
+    val accessname = TermName(desname)
+    q"""
+      class $classname extends Test {
+        val $accessname = 3 
+      }
+      new $classname
+    """
+  }
+}
+
+class Test {
+  val i = 1
 }
 
