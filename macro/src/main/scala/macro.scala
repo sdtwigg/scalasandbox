@@ -69,13 +69,13 @@ CALL SITE:
   def classtest(fname: String): Test = macro classtest_impl
   def classtest_impl(c: Context)(fname: c.Tree) = {
     import c.universe._
-    import c.universe.Flag._ // PRIVATE, LOCAL, etc.
-    val classname = TypeName(c.freshName("newname"))
-    val Literal(Constant(desname: String)) = fname
-    val accessname = TermName(desname)
+    val classname = TypeName(c.freshName("SubTest"))
+    val Literal(Constant(fieldname: String)) = fname
+    val fieldterm = TermName(fieldname)
     q"""
       class $classname extends Test {
-        val $accessname = 3 
+        val $fieldterm = 3
+        def copy = (new $classname)
       }
       new $classname
     """

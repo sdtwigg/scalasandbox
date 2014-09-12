@@ -70,7 +70,7 @@ object macro_main {
     val out3 = PMacro.debug {
       PMacro.classtest("mynewfield")
     }
-    println(out3.mynewfield)
+    println(out3.copy.copy.copy.mynewfield)
   }
 }
 
