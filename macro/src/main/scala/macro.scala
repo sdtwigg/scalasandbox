@@ -75,7 +75,7 @@ CALL SITE:
     q"""
       class $classname extends Test {
         val $fieldterm = 3
-        def copy = (new $classname)
+        def copy: this.type = (new $classname).asInstanceOf[this.type]
       }
       new $classname
     """
