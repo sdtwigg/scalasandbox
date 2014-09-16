@@ -73,15 +73,38 @@ CALL SITE:
     val Literal(Constant(fieldname: String)) = fname // can't seem to get quasiquotes unapply to work here
     val fieldterm = TermName(fieldname)
     q"""
-      class $classname extends Test {
-        val $fieldterm = 3
-        def copy: this.type = (new $classname).asInstanceOf[this.type]
+      class $classname(test: Int) extends Test {
+        val $fieldterm = test
+        def identity[T](in: T) = in
+        def copy: this.type = (new $classname(test)).asInstanceOf[this.type]
       }
-      new $classname
+      new $classname(3)
+    """
+  }
+
+  def imptest[T: c.WeakTypeTag](c: Context) = {
+    import c.universe._
+    val nameT = weakTypeOf[T]
+    val tagT = implicitly[WeakTypeTag[T]]
+    //c.echo(c.enclosingPosition, "Cannot construct Showable[$nameT] from $tagT")
+    //c.error(c.enclosingPosition, "Cannot construct Showable[$nameT] from $tagT")
+    // If error called then implicit construction aborted and implicitNotFound message printed
+    //    this is likely preferable. In this case, error message not printed (but echo is)
+
+    q"""
+      new Showable[$nameT] {
+        def show(in: $nameT) = in.toString
+      }
     """
   }
 }
 
 class Test {
   val i = 1
+}
+
+@annotation.implicitNotFound("Cannot find Showable implementation for ${A}")
+trait Showable[A] {def show(in: A): String}
+object Showable {
+  implicit def materializeShowable[T]: Showable[T] = macro PMacro.imptest[T]
 }
