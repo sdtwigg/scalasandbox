@@ -98,7 +98,7 @@ CALL SITE:
     """
   }
   
-  def gettypetest[T](x: =>T): String = macro gettype_impl[T]
+  def gettypetest[T](x: =>T): Unit = macro gettype_impl[T]
   def gettype_impl[T: c.WeakTypeTag](c: Context)(x: c.Tree) = {
     import c.universe._
 
@@ -113,9 +113,8 @@ CALL SITE:
       }
       case _ => 
     })
-
-    val thetype: String = "blah"
-    q"$thetype"
+    
+    q"{}"
   }
   
 }

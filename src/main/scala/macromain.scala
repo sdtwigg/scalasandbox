@@ -100,7 +100,7 @@ object macro_main {
     }
     showme(new Test)
 
-    println(PMacro.gettypetest{
+    PMacro.gettypetest{
       class SubTest extends Test
       val myString = "meh"
       val myInt1 = 1
@@ -115,7 +115,7 @@ object macro_main {
         def add(in1: Int, in2: Int) = a + b
         add(a,b)
       }
-    })
+    }
   }
 }
 
