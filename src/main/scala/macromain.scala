@@ -108,7 +108,6 @@ object macro_main {
       val myTest = new Test
       val myTestr1 = new Test {val refine = 1}
       val myTestr2: Test = new Test {val refine = 1}
-      val myTestr3: Test = new Test {val refine = 1}
       val mySTest1 = new SubTest
       val myInt3 = {
         val a = 1

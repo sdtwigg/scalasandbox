@@ -107,15 +107,8 @@ CALL SITE:
     val q"..$unpack" = x
     unpack.foreach(_ match {
       case vdef @ q"$mods val $vname: $ttree = $assign" => {
-        /*
-        val tname: String = ttree match {
-          case tq"$name" => name.toString
-          case _ => assign.tpe.widen.toString
-        }
-        */
-        val istest = ttree.tpe <:< typeOf[Test]
+        val istest = ttree.tpe <:< typeOf[MacroSandbox.Test]
         val tname = ttree.toString + (if(istest) " (is Test)" else "")
-        //val tname: String = if(ttree!=tq"") ttree.toString else assign.tpe.widen.toString
         println(s"$vname is $tname")
       }
       case _ => 
