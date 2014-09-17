@@ -1,7 +1,17 @@
 import sbt._
 import Keys._
 
+object BuildSettings {
+  val paradiseVersion = "2.0.1"
+  val buildSettings = Defaults.defaultSettings ++ Seq(
+    resolvers += Resolver.sonatypeRepo("releases"),
+    addCompilerPlugin("org.scalamacros" % "paradise" % paradiseVersion cross CrossVersion.full)
+  )
+}
+
 object MacroBuild extends Build {
-  lazy val main  = Project("sandbox", file(".")) dependsOn(macro)
-  lazy val macro = Project("macro",   file("macro"))
+  import BuildSettings._
+
+  lazy val main   = Project("sandbox", file("."), settings = buildSettings) dependsOn(macros)
+  lazy val macros = Project("macro",   file("macro"), settings = buildSettings)
 }
