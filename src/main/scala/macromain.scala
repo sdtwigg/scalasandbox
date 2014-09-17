@@ -12,6 +12,13 @@ object macro_main {
       o
     }
 
+    def showme[T: Showable](i: T){
+      def show[A: Showable](in: A) = {
+        println(s"Showing: ${implicitly[Showable[A]].show(in)}")
+      }
+      show(i)
+    }
+
     val out1 = 
     PMacro.debug {
     PMacro.name("r1"){
@@ -51,6 +58,17 @@ object macro_main {
       val data_gen2 = data_gen
       println(data_gen2.name)
 
+      class flux(i: Int) {
+        private val secrets = "buddies" 
+      }
+      object flux {
+        def apply() = (new flux(1)).secrets
+        implicit object fluxShowable extends Showable[flux] {
+          def show(in: flux) = in.secrets
+        }
+      }
+      showme(new flux(1))
+
       class SubData extends Data
 
       val subdata = new SubData
@@ -79,16 +97,7 @@ object macro_main {
       PMacro.classtest("mynewfield")
     }
     println(out3.copy.copy.copy.mynewfield)
-
-    def showme[T: Showable](i: T){
-//      implicit def createShowable[A]: Showable[A] = new Showable[A] {def show(in: A) = in.toString}
-//      implicit object IntShowable extends Showable[Int] {def show(in: Int) = in.toString}
-
-      def show[A: Showable](in: A) = {
-        println(s"Showing: ${implicitly[Showable[A]].show(in)}")
-      }
-      show(i)
-    }
+    
     showme(new Test)
 
     PMacro.gettypetest{
@@ -122,8 +131,19 @@ object macro_main {
       println(test2.i)
     }
 
+    @probe case class barrr(i: Int = 1)
+    
+    val bar = barrr()
+    println(bar.i)
+
     @node val mytest = new Data
     println(mytest.name)
+
+    val myCloneData = new CloneData(1)
+    println(myCloneData.clone.clone.test)
+    println(myCloneData.clone.clone.myintdata.clone.clone.clone.test)
+    val myCaseClone = CaseClone(3)
+    println(myCaseClone.clone.clone.dat)
   }
 }
 
@@ -142,6 +162,16 @@ class Data {
   def regenerate: this.type = this
 }
 case class UInt(val width: Int) extends Data
+
+@addclone class SimpleClone
+@addclone case class CaseClone(dat: Int)
+@addclone class CloneData(dat: Int) extends Test {
+  def test = dat
+  @addclone class InternalData(in: Int) {
+    def test = in
+  }
+  val myintdata = new InternalData(dat+1)
+}
 
 /*
 FROM

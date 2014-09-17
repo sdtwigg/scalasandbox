@@ -136,20 +136,39 @@ class probe extends StaticAnnotation {
 class node extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro macroAnno.nameimpl
 }
+class addclone extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro macroAnno.addcloneimpl
+}
 
 object macroAnno {
   def probeimpl(c: Context)(annottees: c.Tree*): c.Tree = {
     import c.universe._
+    import Flag._
+    
+    //println(s"#trees= ${annottees.length}")
+    //annottees.foreach(println(_))
 
     // the typecheck and untypecheck makes sure inner annotations are expanded... may be risky???
     // so will just keep typed version aside as a reference???
     // but then potentially trickier to deal with expanded versus annotations/defmacros
-    val shadow_typed = annottees.map(a => {
-      c.typecheck(a.duplicate)
-    })
+    val shadow_typed = annottees.map(a=>c.typecheck(a.duplicate))
+    
+    object vdoer extends Transformer {
+      override def transform(tree: Tree) = tree match {
+        case q"$mods object $_ extends {..$_} with ..$_ {$_ => ..$_}" if mods.hasFlag(SYNTHETIC) => {
+          println("Found Synthetic Object")
+          q""
+        }
+        case _ => super.transform(tree)
+      }
+    }
 
     println(s"#trees= ${shadow_typed.length}")
     shadow_typed.foreach(println(_))
+    
+    val typed_xform = shadow_typed.map(vdoer.transform(_))
+    //println(s"#trees= ${typed_xform.length}")
+    //typed_xform.foreach(println(_))
 
     q"..$annottees"
   }
@@ -173,5 +192,29 @@ object macroAnno {
 
     val named = annottees.map(vdoer.transform(_))
     q"..$named"
+  }
+  
+  def addcloneimpl(c: Context)(annottees: c.Tree*): c.Tree = {
+    import c.universe._
+    import Flag._
+
+    def getTermName(in: ValDef): TermName = in match {case q"$mods val $tname: $tpt = $expr" => tname}
+
+    val xformd: Seq[Tree] = annottees.map(_ match {
+      case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
+        val termparamss = paramss.map(a=>a.map(b=>getTermName(b)))
+        val myclone = q"override def clone: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
+        q"""
+          $mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents {
+            $self =>
+              ..$stats
+              $myclone
+          }
+        """
+      }
+      case other => other
+    })
+
+    q"..$xformd"
   }
 }
