@@ -97,6 +97,34 @@ CALL SITE:
       }
     """
   }
+  
+  def gettypetest[T](x: =>T): String = macro gettype_impl[T]
+  def gettype_impl[T: c.WeakTypeTag](c: Context)(x: c.Tree) = {
+    import c.universe._
+
+    //val checked = c.typecheck(x.duplicate) // haven't needed this yet
+    // macro annotation may need this as it supposedly gets barer trees
+    val q"..$unpack" = x
+    unpack.foreach(_ match {
+      case vdef @ q"$mods val $vname: $ttree = $assign" => {
+        /*
+        val tname: String = ttree match {
+          case tq"$name" => name.toString
+          case _ => assign.tpe.widen.toString
+        }
+        */
+        val istest = ttree.tpe <:< typeOf[Test]
+        val tname = ttree.toString + (if(istest) " (is Test)" else "")
+        //val tname: String = if(ttree!=tq"") ttree.toString else assign.tpe.widen.toString
+        println(s"$vname is $tname")
+      }
+      case _ => 
+    })
+
+    val thetype: String = "blah"
+    q"$thetype"
+  }
+  
 }
 
 class Test {

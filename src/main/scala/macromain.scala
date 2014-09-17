@@ -99,6 +99,24 @@ object macro_main {
       show(i)
     }
     showme(new Test)
+
+    println(PMacro.gettypetest{
+      class SubTest extends Test
+      val myString = "meh"
+      val myInt1 = 1
+      val myInt2: Int = 1
+      val myTest = new Test
+      val myTestr1 = new Test {val refine = 1}
+      val myTestr2: Test = new Test {val refine = 1}
+      val myTestr3: Test = new Test {val refine = 1}
+      val mySTest1 = new SubTest
+      val myInt3 = {
+        val a = 1
+        val b = 2
+        def add(in1: Int, in2: Int) = a + b
+        add(a,b)
+      }
+    })
   }
 }
 
