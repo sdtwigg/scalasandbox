@@ -75,15 +75,6 @@ object macro_main {
 //      ((i: Int) => i)
     } }
 
-    PMacro.debug {
-      PMacro.myprintf("ab")
-    }
-
-    PMacro.debug {
-      class test(i: Int = 1)
-      new test
-    }
-    
     val out3 = PMacro.debug {
       PMacro.classtest("mynewfield")
     }
@@ -116,6 +107,23 @@ object macro_main {
         add(a,b)
       }
     }
+    PMacro.debug {
+      @probe val test = {
+        @probe val a = 1
+      }
+
+      // this works as long as macro annotation only uses the shadows the typed as a reference but
+      // does not actually integrate it into the tree
+      @probe val test2 = {
+        class fooo(val i: Int = 1)
+        new fooo()
+      }
+
+      println(test2.i)
+    }
+
+    @node val mytest = new Data
+    println(mytest.name)
   }
 }
 

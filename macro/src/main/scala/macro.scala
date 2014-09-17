@@ -2,6 +2,7 @@ package MacroSandbox
 
 import scala.reflect.macros.whitebox.Context //consider blackbox
 import scala.language.experimental.macros
+import scala.annotation.StaticAnnotation
 
 object PMacro {
   def myprintf(format: String, params: Any*): Unit = macro PMacro.myprintf_impl
@@ -127,4 +128,50 @@ class Test {
 trait Showable[A] {def show(in: A): String}
 object Showable {
   implicit def materializeShowable[T]: Showable[T] = macro PMacro.imptest[T]
+}
+
+class probe extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro macroAnno.probeimpl
+}
+class node extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro macroAnno.nameimpl
+}
+
+object macroAnno {
+  def probeimpl(c: Context)(annottees: c.Tree*): c.Tree = {
+    import c.universe._
+
+    // the typecheck and untypecheck makes sure inner annotations are expanded... may be risky???
+    // so will just keep typed version aside as a reference???
+    // but then potentially trickier to deal with expanded versus annotations/defmacros
+    val shadow_typed = annottees.map(a => {
+      c.typecheck(a.duplicate)
+    })
+
+    println(s"#trees= ${shadow_typed.length}")
+    shadow_typed.foreach(println(_))
+
+    q"..$annottees"
+  }
+  
+  def nameimpl(c: Context)(annottees: c.Tree*): c.Tree = {
+    import c.universe._
+    
+    object vdoer extends Transformer {
+      override def transform(tree: Tree) = tree match {
+        case q"$mods val $tname: $ttree = $assign" if mods == (Modifiers()) => {
+          // Check Modifiers so Only match for val x = ...
+          //   as ValDef also used in Class, Function, etc. definitions
+          val TermName(name) = tname
+          val suggestion = q"$name"
+          val subtree = transform(assign)
+          q"$mods val $tname: $ttree = _root_.MacroSandbox.Name($subtree, $suggestion)"
+        }
+        case _ => super.transform(tree)
+      }
+    }
+
+    val named = annottees.map(vdoer.transform(_))
+    q"..$named"
+  }
 }
