@@ -199,16 +199,25 @@ object macroAnno {
     import Flag._
 
     def getTermName(in: ValDef): TermName = in match {case q"$mods val $tname: $tpt = $expr" => tname}
+    def getNoArgDefs(in: Seq[Tree]): Seq[String] = { //clever trick from delegate example
+      in.flatMap(a=>a match{
+        case q"$mods def $tname[..$tparams](...$paramss): $tpt = $expr" if paramss.isEmpty => Some(tname.toString)
+        case _ => None
+      })
+    }
 
     val xformd: Seq[Tree] = annottees.map(_ match {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
         val termparamss = paramss.map(a=>a.map(b=>getTermName(b)))
         val myclone = q"override def clone: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
+        val newbody = stats ++ Seq(
+          if(getNoArgDefs(stats).contains("clone")) q""
+          else q"override def clone: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
+        )
         q"""
           $mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents {
             $self =>
-              ..$stats
-              $myclone
+              ..$newbody
           }
         """
       }

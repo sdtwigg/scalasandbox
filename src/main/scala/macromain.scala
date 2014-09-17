@@ -171,6 +171,7 @@ case class UInt(val width: Int) extends Data
     def test = in
   }
   val myintdata = new InternalData(dat+1)
+  override def clone = new CloneData(dat).asInstanceOf[this.type]
 }
 
 /*
