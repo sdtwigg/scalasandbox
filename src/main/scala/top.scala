@@ -8,6 +8,7 @@ object top_main {
       case "niceassign" => NiceAssign.assign_main.run()
       case "vecassign" => VecAssign.assign_main.run()
       case "macro" => MacroSandbox.macro_main.run()
+      case "implicit" => ImplicitSandbox.implicit_main.run()
       case s => throw new Exception("Unknown test " + s)
     }
   }

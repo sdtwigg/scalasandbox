@@ -19,6 +19,12 @@ object macro_main {
       show(i)
     }
 
+    val out0 = PMacro.debug {
+      val a = 4;
+      a*2
+    }
+    println(out0)
+
     val out1 = 
     PMacro.debug {
     PMacro.name("r1"){
