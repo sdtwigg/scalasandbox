@@ -16,14 +16,45 @@ object implicit_main {
     println(implicitly[Biject[Test,Int]].biject(new Test, 4))
     println(implicitly[Biject[Int,Test]].biject(5, new Test))
 
-    def getTypeTag[A: TypeTag](in: A): TypeTag[A] = implicitly[TypeTag[A]]
+    def getTypeT[A: TypeTag](in: A): TypeTag[A] = implicitly[TypeTag[A]]
+    def getSharedTypeT[A: TypeTag](in1: A, in2: A) = implicitly[TypeTag[A]]
 
-    println(getTypeTag(new Wrapper(new Module(new Data))).tpe)
-    println(getTypeTag(new Wrapper(new AModule)).tpe)
-    println(getTypeTag(new Wrapper(new BModule(new BData))).tpe)
-    println(getTypeTag(new Wrapper(new B2Module)).tpe)
+    println(getTypeT(new Wrapper(new Module(new Data))).tpe)
+    println(getTypeT(new Wrapper(new AModule)).tpe)
+    println(getTypeT(new Wrapper(new BModule(new BData))).tpe)
+    println(getTypeT(new Wrapper(new B2Module)).tpe)
+    
+    println(getTypeT(new Data with Decor).tpe)
+    println(getSharedTypeT(new Data with Decor, new Data).tpe)
+    println(getSharedTypeT(new Data with Decor, new Data with Decor).tpe)
+    println(getSharedTypeT(new Data with Decor, new BData with Decor).tpe)
+    println(getSharedTypeT(new AData with Decor, new BData with Decor).tpe)
+    println(getSharedTypeT(new AData, new BData).tpe)
+
+    val imtest = new OuterIM
   }
 }
+
+class IM(val name: String) { // This could be used for Module
+  implicit val im = this
+}
+
+class OuterIM extends IM("outer") {
+  class InnerIM extends IM("inner"){
+    println(test)
+  }
+  val inner = new InnerIM
+  def test(implicit in: IM) = in.name
+
+  println(test)
+}
+
+class Inner
+class SubInner extends Inner
+class Outer[+I <: Inner](in: I)
+class SubOuter[+I <: Inner](in: I)(implicit evi: I <:< SubInner) extends Outer(in)
+
+trait Decor extends Data
 
 class Data
 class Module[IOT<:Data](io: IOT)
