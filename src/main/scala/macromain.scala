@@ -150,6 +150,9 @@ object macro_main {
     println(myCloneData.clone.clone.myintdata.clone.clone.clone.test)
     val myCaseClone = CaseClone(3)
     println(myCaseClone.clone.clone.dat)
+
+    println((new Datified).name)
+    println((new Datified).clone.myinternaldata.name)
   }
 }
 
@@ -178,6 +181,11 @@ case class UInt(val width: Int) extends Data
   }
   val myintdata = new InternalData(dat+1)
   override def clone = new CloneData(dat).asInstanceOf[this.type]
+}
+
+@node @addclone @datify class Datified {
+  name = "blah"
+  val myinternaldata = new Data
 }
 
 /*

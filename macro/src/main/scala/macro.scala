@@ -139,6 +139,9 @@ class node extends StaticAnnotation {
 class addclone extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro macroAnno.addcloneimpl
 }
+class datify extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro macroAnno.datifyimpl
+}
 
 object macroAnno {
   def probeimpl(c: Context)(annottees: c.Tree*): c.Tree = {
@@ -218,6 +221,25 @@ object macroAnno {
           $mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents {
             $self =>
               ..$newbody
+          }
+        """
+      }
+      case other => other
+    })
+
+    q"..$xformd"
+  }
+
+  def datifyimpl(c: Context)(annottees: c.Tree*): c.Tree = {
+    import c.universe._
+    
+    val xformd: Seq[Tree] = annottees.map(_ match {
+      case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
+        println()
+        q"""
+          $mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with _root_.MacroSandbox.Data {
+            $self =>
+              ..$stats
           }
         """
       }
