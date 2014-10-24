@@ -37,6 +37,7 @@ object implicit_main {
 
 class IM(val name: String) { // This could be used for Module
   implicit val im = this
+  implicit val str = "module"
 }
 
 class OuterIM extends IM("outer") {
@@ -44,9 +45,15 @@ class OuterIM extends IM("outer") {
     println(test)
   }
   val inner = new InnerIM
+
   def test(implicit in: IM) = in.name
+  def test2 = {
+    implicit val str = "def"
+    implicitly[String]
+  }
 
   println(test)
+  println(test2)
 }
 
 class Inner

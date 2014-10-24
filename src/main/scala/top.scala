@@ -9,6 +9,7 @@ object top_main {
       case "vecassign" => VecAssign.assign_main.run()
       case "macro" => MacroSandbox.macro_main.run()
       case "implicit" => ImplicitSandbox.implicit_main.run()
+      case "parse" => ParseSandbox.parse_main.run()
       case s => throw new Exception("Unknown test " + s)
     }
   }
